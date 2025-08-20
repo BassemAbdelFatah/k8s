@@ -12,6 +12,7 @@ spec:
     metadata:
       labels:
         app: otp
+        logging: "enabled"
     spec:
       #      hostNetwork: true
       #      dnsPolicy: "None"
