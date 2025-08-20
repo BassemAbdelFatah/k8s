@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uploadcenter
+  namespace: consumer-production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: uploadcenter
+  template:
+    metadata:
+      labels:
+        app: uploadcenter
+    spec:
+      #      hostNetwork: true
+      #      dnsPolicy: "None"
+      #      dnsConfig:
+      #        nameservers:
+      #         - 8.8.8.8
+      #         - 10.96.0.10
+      #        searches:
+      #          - backend-uat.svc.cluster.local
+      #          - svc.cluster.local
+      #          - cluster.local
+      containers:
+        - name: uploadcenter
+          image: 10.133.70.221:5000/uploadcenter-consumer-production:5
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: TZ
+              value: "Africa/Cairo"
+          #       volumeMounts:
+          #       - mountPath: "/var/www/Logs/UploadCenter"
+          #         name: backend-consumer
+          #       - mountPath: "/var/sharedFolder"
+          #         name: backend-sharedfolder
+          ports:
+            - name: http
+              containerPort: 9010
+            - name: grpc
+              containerPort: 5170
+      #     tolerations:
+      #     - key: "disk-pressure"
+      #       operator: "Exists"
+      #       effect: "NoSchedule"
+      #      nodeName: consumer-uat-backend1
+      #     nodeName: consumer-test-backend2
+      #     volumes:
+      #      - name: backend-consumer
+      #        persistentVolumeClaim:
+      #         claimName: claim-backend
+      #      - name: backend-sharedfolder
+      #        persistentVolumeClaim:
+      #         claimName: sharedfolder-pv-claim
+      imagePullSecrets:
+        - name: myregistrykey
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: uploadcenter
+  namespace: consumer-production
+spec:
+  ports:
+    - name: http-uploadcenter-production
+      targetPort: 9010
+      port: 9010
+      nodePort: 31009
+  selector:
+    app: uploadcenter
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: uploadcentergrpc
+  namespace: consumer-production
+spec:
+  ports:
+    - name: grpc-uploadcentergrpc-production
+      targetPort: 5170
+      port: 5170
+      nodePort: 31010
+  selector:
+    app: uploadcenter
+  type: NodePort
+#---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: consumer-service
+#  namespace: backend-uat
+#spec:
+#  selector:
+#    app: consumer
+#  ports:
+#    - protocol: TCP
+#      port: 80
+#      targetPort: 8070

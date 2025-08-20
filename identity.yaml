@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: identity
+  namespace: consumer-production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: identity
+  template:
+    metadata:
+      labels:
+        app: identity
+    spec:
+      #      hostNetwork: true
+      #      dnsPolicy: "None"
+      #      dnsConfig:
+      #        nameservers:
+      #         - 8.8.8.8
+      #         - 10.96.0.10
+      #        searches:
+      #          - backend-uat.svc.cluster.local
+      #          - svc.cluster.local
+      #          - cluster.local
+      containers:
+        - name: identity
+          image: 10.133.70.221:5000/identity-consumer-production:5
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: TZ
+              value: "Africa/Cairo"
+          #        volumeMounts:
+          #        - mountPath: "/var/www/Logs/Identity"
+          #          name: backend-consumer
+          ports:
+            - name: http
+              containerPort: 8020
+            - name: grpc
+              containerPort: 5150
+          resources:
+              requests:
+                memory: "250Mi"
+                cpu: "2m"
+              limits:
+                memory: "290Mi"
+                cpu: "50m"
+      #      nodeName: consumer-test-backend1
+      #      volumes:
+      #       - name: backend-consumer
+      #         persistentVolumeClaim:
+      #          claimName: claim-backend
+      imagePullSecrets:
+        - name: myregistrykey
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: identity
+  namespace: consumer-production
+spec:
+  ports:
+    - name: http-identity-production
+      targetPort: 8020
+      port: 8020
+      nodePort: 31002
+  selector:
+    app: identity
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: identitygrpc
+  namespace: consumer-production
+spec:
+  ports:
+    - name: grpc-identitygrpc-production
+      targetPort: 5150
+      port: 5150
+      nodePort: 31001
+  selector:
+    app: identity
+  type: NodePort
+#---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: consumer-service
+#  namespace: backend-uat
+#spec:
+#  selector:
+#    app: consumer
+#  ports:
+#    - protocol: TCP
+#      port: 80
+#      targetPort: 8070

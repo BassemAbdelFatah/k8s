@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otp
+  namespace: consumer-production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otp
+  template:
+    metadata:
+      labels:
+        app: otp
+    spec:
+      #      hostNetwork: true
+      #      dnsPolicy: "None"
+      #      dnsConfig:
+      #        nameservers:
+      #         - 8.8.8.8
+      #         - 10.96.0.10
+      #        searches:
+      #          - backend-uat.svc.cluster.local
+      #          - svc.cluster.local
+      #          - cluster.local
+      containers:
+        - name: otp
+          image: 10.133.70.221:5000/otp-consumer-production:2
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: TZ
+              value: "Africa/Cairo"
+          #        volumeMounts:
+          #        - mountPath: "/var/www/Logs/OTP"
+          #          name: backend-consumer
+          ports:
+            - name: http
+              containerPort: 8060
+            - name: grpc
+              containerPort: 5160
+      #      nodeName: consumer-test-backend1
+      #      volumes:
+      #       - name: backend-consumer
+      #         persistentVolumeClaim:
+      #          claimName: claim-backend
+      imagePullSecrets:
+        - name: myregistrykey
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otp
+  namespace: consumer-production
+spec:
+  ports:
+    - name: http-otp-production
+      targetPort: 8060
+      port: 8060
+      nodePort: 31006
+  selector:
+    app: otp
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otpgrpc
+  namespace: consumer-production
+spec:
+  ports:
+    - name: grpc-otpgrpc-production
+      targetPort: 5160
+      port: 5160
+      nodePort: 31005
+  selector:
+    app: otp
+  type: NodePort
+#---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: consumer-service
+#  namespace: backend-uat
+#spec:
+#  selector:
+#    app: consumer
+#  ports:
+#    - protocol: TCP
+#      port: 80
+#      targetPort: 8070
