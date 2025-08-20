@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: consumer-prod
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: elasticsearch-settings
+  namespace: consumer-prod
+data:
+  host: "elasticsearch.example.com"
+  port: "9200"
+  index: "k8s-logs"
+  tls: "Off"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: elasticsearch-credentials
+  namespace: consumer-prod
+type: Opaque
+stringData:
+  username: "elastic"
+  password: "changeme"
